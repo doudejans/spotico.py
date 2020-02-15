@@ -7,7 +7,7 @@ The program looks for any differences between source and target playlists and up
 Furthermore, spotico.py also supports randomization of the playlist and automatic updating.
 
 ## Usage
-```shell script
+```
 $ python spotico.py -h
 usage: spotico.py [-h] [-c] [-i INTERVAL] [-r]
 
@@ -40,5 +40,10 @@ source_uri: 'spotify:playlist:xxxxxx'
 target_uri: 'spotify:playlist:xxxxxx'
 ```
 
+The username field should simply contain your Spotify username.
 A client ID and secret can be generated within the [Spotify for Developers Dashboard](https://developer.spotify.com/dashboard/).
+In the settings of your application, set the redirect url to `http://localhost/`.
+When running spotico.py, you will need to authorize the app with your Spotify account.
+Spotipy will then prompt for the callback url that Spotify gives after authorizing the app, which you can just copy and paste from your browser into the console.
+
 The URIs of your playlists can be copied through the share menu when right-clicking a playlist.
