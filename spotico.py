@@ -1,15 +1,17 @@
 import argparse
+import os
 import random
 import spotipy
 import time
 import yaml
 
+CONFIG_FILE = 'config.yml'
 SCOPE = 'playlist-read-collaborative playlist-modify-public playlist-read-private playlist-modify-private'
 REDIRECT_URI = 'http://localhost/'
 
 
 class Spoticopy:
-    def __init__(self, args, config_path='config.yml'):
+    def __init__(self, args, config_path=CONFIG_FILE):
         self.args = args
 
         config = yaml.safe_load(open(config_path))
@@ -31,7 +33,7 @@ class Spoticopy:
             if self.args.randomize:
                 self.randomize_target(sp)
         else:
-            print("Couldn't get token")
+            print("[warn] Couldn't get token")
 
     def backup(self, sp):
         source_list = sp.playlist_tracks(self.source_uri)
@@ -39,7 +41,7 @@ class Spoticopy:
         with open(f'.backup-{self.user}', 'w') as file:
             file.writelines(f'{track_id}\n' for track_id in source_ids)
 
-        print("Source list backed up")
+        print("[info] Source list backed up")
 
     def randomize_target(self, sp):
         target_list = sp.playlist_tracks(self.target_uri)
@@ -48,7 +50,7 @@ class Spoticopy:
         random.shuffle(target_ids)
         sp.user_playlist_replace_tracks(self.user, self.target_uri, target_ids)
 
-        print("Target list randomized")
+        print("[info] Target list randomized")
 
     def update_target(self, sp):
         source_list = sp.playlist_tracks(self.source_uri)
@@ -65,7 +67,7 @@ class Spoticopy:
         if removed:
             sp.user_playlist_remove_all_occurrences_of_tracks(self.user, self.target_uri, removed)
 
-        print(f"Target list updated: {len(new)} tracks added and {len(removed)} tracks removed")
+        print(f"[info] Target list updated: {len(new)} tracks added and {len(removed)} tracks removed")
 
 
 def parse_args():
@@ -74,13 +76,35 @@ def parse_args():
     parser.add_argument('-i', '--interval', type=int,
                         help="interval for which to repeat the chosen options in minutes")
     parser.add_argument('-r', '--randomize', action='store_true', help="randomize the target playlist")
+    parser.add_argument('--setup', action='store_true', help="start guided setup")
     return parser.parse_args()
 
 
-def main():
-    spc = Spoticopy(parse_args())
+def setup():
+    config = {}
+    print("Setting up spotico.py...")
+    config['username'] = input("> Enter your Spotify username: ")
+    print("Create an app on https://developer.spotify.com/dashboard/")
+    print("Then, go into the settings of your app and set the redirect url to: http://localhost/")
+    config['client_id'] = input("> Now go back to your app and locate and enter your Client ID: ")
+    config['client_secret'] = input("> Enter your Client Secret: ")
+    config['source_uri'] = input("> Go into Spotify and copy the URI for the SOURCE playlist through the share menu: ")
+    config['target_uri'] = input("> Go into Spotify and copy the URI for the TARGET playlist through the share menu: ")
 
-    if spc.args.interval:
+    with open(CONFIG_FILE, 'w') as file:
+        yaml.dump(config, file)
+    print(f"Configuration has been written to {CONFIG_FILE}! Now, Spotipy might prompt you to login and authorize "
+          f"this app.\n")
+
+
+def main():
+    args = parse_args()
+    if args.setup or not os.path.exists(CONFIG_FILE):
+        setup()
+
+    spc = Spoticopy(args)
+
+    if args.interval:
         while True:
             start_time = time.time()
             refresh_interval = spc.args.interval * 60.0
