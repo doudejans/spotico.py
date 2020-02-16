@@ -8,8 +8,8 @@ Furthermore, spotico.py also supports randomization of the playlist and automati
 
 ## Usage
 ```
-$ python spotico.py -h
-usage: spotico.py [-h] [-c] [-i INTERVAL] [-r]
+$ python3 spotico.py -h
+usage: spotico.py [-h] [-c] [-i INTERVAL] [-r] [--setup]
 
 Copy Spotify playlist contents between playlists.
 
@@ -20,6 +20,7 @@ optional arguments:
                         interval for which to repeat the chosen options in
                         minutes
   -r, --randomize       randomize the target playlist
+  --setup               start guided setup
 ```
 
 ## Requirements
@@ -47,3 +48,18 @@ When running spotico.py, you will need to authorize the app with your Spotify ac
 Spotipy will then prompt for the callback url that Spotify gives after authorizing the app, which you can just copy and paste from your browser into the console.
 
 The URIs of your playlists can be copied through the share menu when right-clicking a playlist.
+
+### Docker
+This repository contains a Dockerfile, which can be used to run your instance of spotico.py in a container.
+First, make sure that spotico.py is setup and working.
+Then, simply build an image:
+```shell script
+docker build -t spotico.py .
+```
+Now that you have an image tagged `spotico.py`, spin it up wherever you want:
+```shell script
+docker run -itd --rm --name spotico.py spotico.py
+```
+This command will run a container in detached mode, meaning that the container and in turn spotico.py will keep running.
+By default, as can be seen in the Dockerfile, spotico.py runs every hour and does not randomize.
+Please note that your configuration is copied over as well when building an image, so you should refrain from publishing the image.
