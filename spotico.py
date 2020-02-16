@@ -35,15 +35,15 @@ class Spoticopy:
 
     def backup(self, sp):
         source_list = sp.playlist_tracks(self.source_uri)
-        source_ids = [item["track"]["id"] for item in source_list["items"]]
-        with open(f".backup-{self.user}", 'w') as file:
+        source_ids = [item['track']['id'] for item in source_list['items']]
+        with open(f'.backup-{self.user}', 'w') as file:
             file.writelines(f'{track_id}\n' for track_id in source_ids)
 
         print("Source list backed up")
 
     def randomize_target(self, sp):
         target_list = sp.playlist_tracks(self.target_uri)
-        target_ids = [item["track"]["id"] for item in target_list["items"]]
+        target_ids = [item['track']['id'] for item in target_list['items']]
 
         random.shuffle(target_ids)
         sp.user_playlist_replace_tracks(self.user, self.target_uri, target_ids)
@@ -54,8 +54,8 @@ class Spoticopy:
         source_list = sp.playlist_tracks(self.source_uri)
         target_list = sp.playlist_tracks(self.target_uri)
 
-        source_ids = [item["track"]["id"] for item in source_list["items"]]
-        target_ids = [item["track"]["id"] for item in target_list["items"]]
+        source_ids = [item['track']['id'] for item in source_list['items']]
+        target_ids = [item['track']['id'] for item in target_list['items']]
 
         new = [i for i in source_ids + target_ids if i not in target_ids]
         removed = [i for i in source_ids + target_ids if i not in source_ids]
@@ -69,11 +69,11 @@ class Spoticopy:
 
 
 def parse_args():
-    parser = argparse.ArgumentParser(description='Copy Spotify playlist contents between playlists.')
-    parser.add_argument('-c', '--copy', action='store_true', help='copy all tracks from source to target playlist')
+    parser = argparse.ArgumentParser(description="Copy Spotify playlist contents between playlists.")
+    parser.add_argument('-c', '--copy', action='store_true', help="copy all tracks from source to target playlist")
     parser.add_argument('-i', '--interval', type=int,
-                        help='interval for which to repeat the chosen options in minutes')
-    parser.add_argument('-r', '--randomize', action='store_true', help='randomize the target playlist')
+                        help="interval for which to repeat the chosen options in minutes")
+    parser.add_argument('-r', '--randomize', action='store_true', help="randomize the target playlist")
     return parser.parse_args()
 
 
