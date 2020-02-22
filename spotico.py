@@ -34,11 +34,21 @@ class Spoticopy:
             print("[warn] Couldn't get token")
             return None
 
+    def get_all_playlist_tracks(self, sp, uri):
+        page = sp.user_playlist_tracks(self.user, uri)
+        tracks = page['items']
+
+        while page['next']:
+            page = sp.next(page)
+            tracks.extend(page['items'])
+
+        return tracks
+
     def backup(self):
         sp = self.get_spotipy_instance()
 
-        source_list = sp.playlist_tracks(self.source_uri)
-        source_ids = [item['track']['id'] for item in source_list['items']]
+        source_list = self.get_all_playlist_tracks(sp, self.source_uri)
+        source_ids = [item['track']['id'] for item in source_list]
 
         filename = f'.backup-{self.user}'
         with open(filename, 'w') as file:
@@ -49,8 +59,8 @@ class Spoticopy:
     def randomize_target(self):
         sp = self.get_spotipy_instance()
 
-        target_list = sp.playlist_tracks(self.target_uri)
-        target_ids = [item['track']['id'] for item in target_list['items']]
+        target_list = self.get_all_playlist_tracks(sp, self.target_uri)
+        target_ids = [item['track']['id'] for item in target_list]
 
         random.shuffle(target_ids)
         sp.user_playlist_replace_tracks(self.user, self.target_uri, target_ids)
@@ -60,11 +70,11 @@ class Spoticopy:
     def update_target(self):
         sp = self.get_spotipy_instance()
 
-        source_list = sp.playlist_tracks(self.source_uri)
-        target_list = sp.playlist_tracks(self.target_uri)
+        source_list = self.get_all_playlist_tracks(sp, self.source_uri)
+        target_list = self.get_all_playlist_tracks(sp, self.target_uri)
 
-        source_ids = [item['track']['id'] for item in source_list['items']]
-        target_ids = [item['track']['id'] for item in target_list['items']]
+        source_ids = [item['track']['id'] for item in source_list]
+        target_ids = [item['track']['id'] for item in target_list]
 
         new = [i for i in source_ids + target_ids if i not in target_ids]
         removed = [i for i in source_ids + target_ids if i not in source_ids]
