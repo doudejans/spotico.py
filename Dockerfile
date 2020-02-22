@@ -7,5 +7,5 @@ RUN pip install --no-cache-dir -r requirements.txt
 
 COPY . .
 
-CMD [ "python", "spotico.py", "-c", "-i 60" ]
+CMD [ "python", "spotico.py", "schedule", "-c", "-r" ]
 

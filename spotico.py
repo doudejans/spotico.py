@@ -1,6 +1,7 @@
 import argparse
 import os
 import random
+import schedule
 import spotipy
 import time
 import yaml
@@ -21,29 +22,33 @@ class Spoticopy:
         self.source_uri = config['source_uri']
         self.target_uri = config['target_uri']
 
-    def run(self):
+        self.backup()
+
+    def get_spotipy_instance(self):
         token = spotipy.util.prompt_for_user_token(self.user, SCOPE, client_id=self.client_id,
                                                    client_secret=self.client_secret,
                                                    redirect_uri=REDIRECT_URI)
         if token:
-            sp = spotipy.Spotify(auth=token)
-            self.backup(sp)
-            if self.args.copy:
-                self.update_target(sp)
-            if self.args.randomize:
-                self.randomize_target(sp)
+            return spotipy.Spotify(auth=token)
         else:
             print("[warn] Couldn't get token")
+            return None
 
-    def backup(self, sp):
+    def backup(self):
+        sp = self.get_spotipy_instance()
+
         source_list = sp.playlist_tracks(self.source_uri)
         source_ids = [item['track']['id'] for item in source_list['items']]
-        with open(f'.backup-{self.user}', 'w') as file:
+
+        filename = f'.backup-{self.user}'
+        with open(filename, 'w') as file:
             file.writelines(f'{track_id}\n' for track_id in source_ids)
 
-        print("[info] Source list backed up")
+        print(f"[info] Source list backed up to {filename}")
 
-    def randomize_target(self, sp):
+    def randomize_target(self):
+        sp = self.get_spotipy_instance()
+
         target_list = sp.playlist_tracks(self.target_uri)
         target_ids = [item['track']['id'] for item in target_list['items']]
 
@@ -52,7 +57,9 @@ class Spoticopy:
 
         print("[info] Target list randomized")
 
-    def update_target(self, sp):
+    def update_target(self):
+        sp = self.get_spotipy_instance()
+
         source_list = sp.playlist_tracks(self.source_uri)
         target_list = sp.playlist_tracks(self.target_uri)
 
@@ -72,11 +79,19 @@ class Spoticopy:
 
 def parse_args():
     parser = argparse.ArgumentParser(description="Copy Spotify playlist contents between playlists.")
+    subparsers = parser.add_subparsers(dest='subparser')
+    schedule_parser = subparsers.add_parser('schedule',  help="schedule options to run at an interval")
+    schedule_parser.set_defaults(func=schedule_tasks)
+
     parser.add_argument('-c', '--copy', action='store_true', help="copy all tracks from source to target playlist")
-    parser.add_argument('-i', '--interval', type=int,
-                        help="interval for which to repeat the chosen options in minutes")
     parser.add_argument('-r', '--randomize', action='store_true', help="randomize the target playlist")
     parser.add_argument('--setup', action='store_true', help="start guided setup")
+
+    schedule_parser.add_argument('-c', '--copy', metavar='MINUTES', nargs='?', const=5, type=int,
+                                 help="copy all tracks from source to target playlist, "
+                                      "optionally with interval in minutes (default: 5)")
+    schedule_parser.add_argument('-r', '--randomize', metavar='DAYS', nargs='?', const=7, type=int,
+                                 help="randomize the target playlist, optionally with interval in days (default: 7)")
     return parser.parse_args()
 
 
@@ -97,6 +112,27 @@ def setup():
           f"this app.\n")
 
 
+def run_once(args, spc):
+    if args.copy:
+        spc.update_target()
+    if args.randomize:
+        spc.randomize_target()
+
+
+def schedule_tasks(args, spc):
+    if args.copy is not None and args.copy > 0:
+        print(f"[info] Copying scheduled to run every {args.copy} minutes")
+        schedule.every(int(args.copy)).minutes.do(spc.update_target)
+
+    if args.randomize is not None and args.randomize > 0:
+        print(f"[info] Randomization scheduled to run every {args.randomize} days")
+        schedule.every(int(args.randomize)).days.do(spc.randomize_target)
+
+    while True:
+        schedule.run_pending()
+        time.sleep(1)
+
+
 def main():
     args = parse_args()
     if args.setup or not os.path.exists(CONFIG_FILE):
@@ -104,14 +140,10 @@ def main():
 
     spc = Spoticopy(args)
 
-    if args.interval:
-        while True:
-            start_time = time.time()
-            refresh_interval = spc.args.interval * 60.0
-            spc.run()
-            time.sleep(refresh_interval - ((time.time() - start_time) % 60.0))
+    if args.subparser == 'schedule':
+        args.func(args, spc)
     else:
-        spc.run()
+        run_once(args, spc)
 
 
 if __name__ == '__main__':
