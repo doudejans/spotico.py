@@ -44,6 +44,10 @@ class Spoticopy:
 
         return tracks
 
+    @staticmethod
+    def generate_pages(track_ids):
+        return [track_ids[i * 100:(i + 1) * 100] for i in range((len(track_ids) // 100) + 1)]
+
     def backup(self):
         sp = self.get_spotipy_instance()
 
@@ -63,7 +67,11 @@ class Spoticopy:
         target_ids = [item['track']['id'] for item in target_list]
 
         random.shuffle(target_ids)
-        sp.user_playlist_replace_tracks(self.user, self.target_uri, target_ids)
+        pages = self.generate_pages(target_ids)
+
+        sp.user_playlist_replace_tracks(self.user, self.target_uri, [])
+        for page in pages:
+            sp.user_playlist_add_tracks(self.user, self.target_uri, page)
 
         print("[info] Target list randomized")
 
@@ -80,9 +88,13 @@ class Spoticopy:
         removed = [i for i in source_ids + target_ids if i not in source_ids]
 
         if new:
-            sp.user_playlist_add_tracks(self.user, self.target_uri, new)
+            pages = self.generate_pages(new)
+            for page in pages:
+                sp.user_playlist_add_tracks(self.user, self.target_uri, page)
         if removed:
-            sp.user_playlist_remove_all_occurrences_of_tracks(self.user, self.target_uri, removed)
+            pages = self.generate_pages(removed)
+            for page in pages:
+                sp.user_playlist_remove_all_occurrences_of_tracks(self.user, self.target_uri, page)
 
         print(f"[info] Target list updated: {len(new)} tracks added and {len(removed)} tracks removed")
 
