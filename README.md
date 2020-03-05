@@ -26,7 +26,7 @@ $ pip install -r requirements.txt
 ```
 
 ## Setup
-spotico.py assumes that a `config.yml` file is present in the root folder with the following format:
+spotico.py assumes that a `config.yml` file is present in the current directory with the following format:
 ```yaml
 username: 'xxxxxx'
 client_id: 'xxxxxx'
@@ -58,3 +58,11 @@ docker run -itd --name spotico.py spotico.py
 This command will run a container in detached mode, meaning that the container and in turn spotico.py will keep running.
 By default, as can be seen in the Dockerfile, spotico.py runs on the default schedule (copying every 5 minutes and randomizing every 7 days).
 Please note that your configuration is copied over as well when building an image, so you should refrain from publishing the image.
+
+## Backups
+When starting, spotico.py will automatically back up all tracks in your source list to a file in your current directory called `.backup-<username>`.
+In case you need to restore this backup, simply run:
+```shell script
+$ python spotico.py --restore
+```
+Adding the `-c` flag will also immediately restore the contents to the target list.
