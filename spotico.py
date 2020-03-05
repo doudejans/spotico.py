@@ -22,7 +22,10 @@ class Spoticopy:
         self.source_uri = config['source_uri']
         self.target_uri = config['target_uri']
 
-        self.backup()
+        if args.restore:
+            self.restore_backup()
+        else:
+            self.backup()
 
     def get_spotipy_instance(self):
         token = spotipy.util.prompt_for_user_token(self.user, SCOPE, client_id=self.client_id,
@@ -59,6 +62,23 @@ class Spoticopy:
             file.writelines(f'{track_id}\n' for track_id in source_ids)
 
         print(f"[info] Source list backed up to {filename}")
+
+    def restore_backup(self):
+        sp = self.get_spotipy_instance()
+
+        ids = []
+        filename = f'.backup-{self.user}'
+        with open(filename, 'r') as file:
+            for line in file:
+                ids.append(line.strip())
+
+        pages = self.generate_pages(ids)
+
+        sp.user_playlist_replace_tracks(self.user, self.source_uri, [])
+        for page in pages:
+            sp.user_playlist_add_tracks(self.user, self.source_uri, page)
+
+        print("[info] Backup restored to source list")
 
     def randomize_target(self):
         sp = self.get_spotipy_instance()
@@ -108,6 +128,7 @@ def parse_args():
     parser.add_argument('-c', '--copy', action='store_true', help="copy all tracks from source to target playlist")
     parser.add_argument('-r', '--randomize', action='store_true', help="randomize the target playlist")
     parser.add_argument('--setup', action='store_true', help="start guided setup")
+    parser.add_argument('--restore', action='store_true', help="restore backup to the source playlist")
 
     schedule_parser.add_argument('-c', '--copy', metavar='MINUTES', nargs='?', const=5, type=int,
                                  help="copy all tracks from source to target playlist, "
