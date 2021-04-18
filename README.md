@@ -7,26 +7,34 @@ The program looks for any differences between source and target playlists and up
 Furthermore, spotico.py also supports randomization of the playlist and scheduling these operations.
 
 ## Usage
+
 ```shell script
-$ python spotico.py [-c] [-r]
+python spotico.py [-c] [-r]
 ```
+
 The `-c` option will copy any new songs from the source to the target playlist.
 The `-r` option will randomize the order of the target playlist.
 It is also possible to continuously run these options at an interval:
+
 ```shell script
-$ python spotico.py schedule [-c [MINUTES]] [-r [DAYS]]
+python spotico.py schedule [-c [MINUTES]] [-r [DAYS]]
 ```
+
 To view all options, use the `-h` option.
 
 ## Requirements
+
 spotico.py has been written and tested using Python 3.7.
 The program relies on [Spotipy](https://github.com/plamere/spotipy) and [PyYAML](https://github.com/yaml/pyyaml).
+
 ```shell script
-$ pip install -r requirements.txt
+pip install -r requirements.txt
 ```
 
 ## Setup
+
 spotico.py assumes that a `config.yml` file is present in the current directory with the following format:
+
 ```yaml
 username: 'xxxxxx'
 client_id: 'xxxxxx'
@@ -45,24 +53,32 @@ Spotipy will then prompt for the callback url that Spotify gives after authorizi
 The URIs of your playlists can be copied through the share menu when right-clicking a playlist.
 
 ### Docker
+
 This repository contains a Dockerfile, which can be used to run your instance of spotico.py in a container.
 First, make sure that spotico.py is set up and working.
 Then, simply build an image:
+
 ```shell script
 docker build -t spotico.py .
 ```
+
 Now that you have an image tagged `spotico.py`, spin it up wherever you want:
+
 ```shell script
-docker run -itd --name spotico.py spotico.py
+docker run -itd --restart unless-stopped --name spotico.py spotico.py
 ```
+
 This command will run a container in detached mode, meaning that the container and in turn spotico.py will keep running.
 By default, as can be seen in the Dockerfile, spotico.py runs on the default schedule (copying every 5 minutes and randomizing every 7 days).
 Please note that your configuration is copied over as well when building an image, so you should refrain from publishing the image.
 
 ## Backups
+
 When starting, spotico.py will automatically back up all tracks in your source list to a file in your current directory called `.backup-<username>`.
 In case you need to restore this backup, simply run:
+
 ```shell script
-$ python spotico.py --restore
+python spotico.py --restore
 ```
+
 Adding the `-c` flag will also immediately restore the contents to the target list.
