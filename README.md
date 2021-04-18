@@ -33,6 +33,7 @@ pip install -r requirements.txt
 
 ## Setup
 
+If you run spotico.py for the first time, the script will guide you step by step to generate a configuration file.
 spotico.py assumes that a `config.yml` file is present in the current directory with the following format:
 
 ```yaml
