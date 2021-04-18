@@ -47,7 +47,7 @@ target_uri: 'spotify:playlist:xxxxxx'
 
 The username field should simply contain your Spotify username.
 A client ID and secret can be generated within the [Spotify for Developers Dashboard](https://developer.spotify.com/dashboard/).
-In the settings of your application, set the redirect url to `http://localhost/`.
+In the settings of your application, set the redirect url to `http://localhost:8080/`.
 When running spotico.py, you will need to authorize the app with your Spotify account.
 Spotipy will then prompt for the callback url that Spotify gives after authorizing the app, which you can just copy and paste from your browser into the console.
 
