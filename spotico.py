@@ -16,7 +16,6 @@ class Spoticopy:
         self.args = args
 
         config = yaml.safe_load(open(config_path))
-        self.user = config['username']
         self.client_id = config['client_id']
         self.client_secret = config['client_secret']
         self.source_uri = config['source_uri']
@@ -33,7 +32,7 @@ class Spoticopy:
                                                                  redirect_uri=REDIRECT_URI))
 
     def get_all_playlist_tracks(self, sp, uri):
-        page = sp.user_playlist_tracks(self.user, uri)
+        page = sp.playlist_tracks(uri)
         tracks = page['items']
 
         while page['next']:
@@ -52,7 +51,7 @@ class Spoticopy:
         source_list = self.get_all_playlist_tracks(sp, self.source_uri)
         source_ids = [item['track']['id'] for item in source_list]
 
-        filename = f'.backup-{self.user}'
+        filename = f'.backup'
         with open(filename, 'w') as file:
             file.writelines(f'{track_id}\n' for track_id in source_ids)
 
@@ -62,7 +61,7 @@ class Spoticopy:
         sp = self.get_spotipy_instance()
 
         ids = []
-        filename = f'.backup-{self.user}'
+        filename = f'.backup'
         with open(filename, 'r') as file:
             for line in file:
                 ids.append(line.strip())
@@ -136,7 +135,6 @@ def parse_args():
 def setup():
     config = {}
     print("Setting up spotico.py...")
-    config['username'] = input("> Enter your Spotify username: ")
     print("Create an app on https://developer.spotify.com/dashboard/")
     print("Then, go into the settings of your app and set the redirect url to: http://localhost/")
     config['client_id'] = input("> Now go back to your app and locate and enter your Client ID: ")

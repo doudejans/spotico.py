@@ -37,7 +37,6 @@ If you run spotico.py for the first time, the script will guide you step by step
 spotico.py assumes that a `config.yml` file is present in the current directory with the following format:
 
 ```yaml
-username: 'xxxxxx'
 client_id: 'xxxxxx'
 client_secret: 'xxxxxx'
 
@@ -45,7 +44,6 @@ source_uri: 'spotify:playlist:xxxxxx'
 target_uri: 'spotify:playlist:xxxxxx'
 ```
 
-The username field should simply contain your Spotify username.
 A client ID and secret can be generated within the [Spotify for Developers Dashboard](https://developer.spotify.com/dashboard/).
 In the settings of your application, set the redirect url to `http://localhost:8080/`.
 When running spotico.py, you will need to authorize the app with your Spotify account.
@@ -75,7 +73,7 @@ Please note that your configuration is copied over as well when building an imag
 
 ## Backups
 
-When starting, spotico.py will automatically back up all tracks in your source list to a file in your current directory called `.backup-<username>`.
+When starting, spotico.py will automatically back up all tracks in your source list to a file in your current directory called `.backup`.
 In case you need to restore this backup, simply run:
 
 ```shell script
