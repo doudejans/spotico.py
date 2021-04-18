@@ -8,7 +8,7 @@ import yaml
 
 CONFIG_FILE = 'config.yml'
 SCOPE = 'playlist-read-collaborative playlist-modify-public playlist-read-private playlist-modify-private'
-REDIRECT_URI = 'http://localhost/'
+REDIRECT_URI = 'http://localhost:8080/'
 
 
 class Spoticopy:
@@ -28,14 +28,9 @@ class Spoticopy:
             self.backup()
 
     def get_spotipy_instance(self):
-        token = spotipy.util.prompt_for_user_token(self.user, SCOPE, client_id=self.client_id,
-                                                   client_secret=self.client_secret,
-                                                   redirect_uri=REDIRECT_URI)
-        if token:
-            return spotipy.Spotify(auth=token)
-        else:
-            print("[warn] Couldn't get token")
-            return None
+        return spotipy.Spotify(auth_manager=spotipy.SpotifyOAuth(scope=SCOPE, client_id=self.client_id,
+                                                                 client_secret=self.client_secret,
+                                                                 redirect_uri=REDIRECT_URI))
 
     def get_all_playlist_tracks(self, sp, uri):
         page = sp.user_playlist_tracks(self.user, uri)
@@ -74,9 +69,9 @@ class Spoticopy:
 
         pages = self.generate_pages(ids)
 
-        sp.user_playlist_replace_tracks(self.user, self.source_uri, [])
+        sp.playlist_replace_items(self.source_uri, [])
         for page in pages:
-            sp.user_playlist_add_tracks(self.user, self.source_uri, page)
+            sp.playlist_add_items(self.source_uri, page)
 
         print("[info] Backup restored to source list")
 
@@ -89,9 +84,9 @@ class Spoticopy:
         random.shuffle(target_ids)
         pages = self.generate_pages(target_ids)
 
-        sp.user_playlist_replace_tracks(self.user, self.target_uri, [])
+        sp.playlist_replace_items(self.target_uri, [])
         for page in pages:
-            sp.user_playlist_add_tracks(self.user, self.target_uri, page)
+            sp.playlist_add_items(self.target_uri, page)
 
         print("[info] Target list randomized")
 
@@ -110,11 +105,11 @@ class Spoticopy:
         if new:
             pages = self.generate_pages(new)
             for page in pages:
-                sp.user_playlist_add_tracks(self.user, self.target_uri, page)
+                sp.playlist_add_items(self.target_uri, page)
         if removed:
             pages = self.generate_pages(removed)
             for page in pages:
-                sp.user_playlist_remove_all_occurrences_of_tracks(self.user, self.target_uri, page)
+                sp.playlist_remove_all_occurrences_of_items(self.target_uri, page)
 
         print(f"[info] Target list updated: {len(new)} tracks added and {len(removed)} tracks removed")
 
